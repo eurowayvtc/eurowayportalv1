@@ -5,54 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Euroway Driver Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+  <!-- Firebase compat scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <script>
     // 🔹 Firebase configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyCR61dTERjZim3IeBYfjHhXwXW8HuBprbM",
-      authDomain: "euroway-vtcv1.firebaseapp.com",
-      projectId: "euroway-vtcv1",
-      storageBucket: "euroway-vtcv1.firebasestorage.app",
-      messagingSenderId: "110649931632",
-      appId: "1:110649931632:web:02ab5942101764d50c81b5"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
 
     // 🔹 Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // 🔹 DOM elements
-    const inboxContainer = document.getElementById("inboxContainer");
-    const inboxEmpty = document.getElementById("inboxEmpty");
-    const msgDetail = document.getElementById("msgDetail");
-    const msgDetailSubject = document.getElementById("msgDetailSubject");
-    const msgDetailBody = document.getElementById("msgDetailBody");
-    const msgDetailMeta = document.getElementById("msgDetailMeta");
-    const msgBack = document.getElementById("msgBack");
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
     // 🔹 Load inbox messages
-    async function loadInbox(driverId) {
+    async function loadInbox() {
+      const inboxContainer = document.getElementById("inboxContainer");
+      const inboxEmpty = document.getElementById("inboxEmpty");
+      const msgDetail = document.getElementById("msgDetail");
+      const msgDetailSubject = document.getElementById("msgDetailSubject");
+      const msgDetailBody = document.getElementById("msgDetailBody");
+      const msgDetailMeta = document.getElementById("msgDetailMeta");
+      const msgBack = document.getElementById("msgBack");
+
       try {
-        const q = query(
-          collection(db, "messages"),
-          where("to", "==", driverId),
-          orderBy("createdAt", "desc")
-        );
-        const snap = await getDocs(q);
+        const snap = await db.collection("messages").orderBy("createdAt", "desc").get();
 
         if (snap.empty) {
-          inboxContainer.innerHTML = "";
-          inboxEmpty.textContent = "No messages yet for this driver.";
+          inboxEmpty.textContent = "No messages yet.";
           return;
         }
 
         inboxEmpty.textContent = "";
         inboxContainer.innerHTML = "";
 
-        snap.forEach((docSnap) => {
-          const data = docSnap.data();
+        snap.forEach(doc => {
+          const data = doc.data();
           const card = document.createElement("button");
           card.className =
             "w-full text-left bg-slate-800 border border-slate-700 hover:border-amber-400 rounded-lg p-4 flex flex-col gap-1";
@@ -83,29 +78,21 @@
         console.error(err);
         inboxEmpty.textContent = "Error loading messages.";
       }
+
+      msgBack.addEventListener("click", () => {
+        msgDetail.classList.add("hidden");
+        inboxContainer.classList.remove("hidden");
+      });
     }
 
-    // 🔹 Back button
-    msgBack.addEventListener("click", () => {
-      msgDetail.classList.add("hidden");
-      inboxContainer.classList.remove("hidden");
-    });
-
-    // 🔹 Initialize UI
-    function populateDriverSelects() {
-      // Placeholder for driver dropdown logic
-    }
-
-    function renderLeaderboard() {
-      // Placeholder for leaderboard logic
-    }
-
-    populateDriverSelects();
-    renderLeaderboard();
-    lucide.createIcons();
+    // 🔹 Initialize portal
+    window.onload = loadInbox;
   </script>
 </head>
+
 <body class="bg-slate-900 text-white p-6">
+  <h1 class="text-2xl font-bold mb-4">Euroway Driver Portal</h1>
+
   <div id="inboxContainer"></div>
   <p id="inboxEmpty" class="text-slate-400"></p>
 
