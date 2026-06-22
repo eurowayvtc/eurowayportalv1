@@ -363,13 +363,33 @@
             ? created.toLocaleString()
             : "Unknown time";
 
-         card.addEventListener("click", () => {
+        card.addEventListener("click", () => {
   msgDetailSubject.textContent = data.subject || "(no subject)";
   msgDetailBody.textContent = data.body || "";
   msgDetailMeta.textContent = `From: Admin • ${dateStr}`;
   inboxContainer.classList.add("hidden");
   msgDetail.classList.remove("hidden");
 });
+      });
+    });
+  } catch (err) {
+    console.error(err);
+    inboxEmpty.textContent = "Error loading messages.";
+  }
+}
+
+msgBack.addEventListener("click", () => {
+  msgDetail.classList.add("hidden");
+  inboxContainer.classList.remove("hidden");
+});
+
+populateDriverSelects();
+renderLeaderboard();
+lucide.createIcons();
+</script>
+</body>
+</html>
+
 
 </script>
 </body>
