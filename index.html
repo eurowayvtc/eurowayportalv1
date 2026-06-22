@@ -2,337 +2,38 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Euroway Driver Portal</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <style>
-    body {
-      background: radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
-    }
-    .tab-active {
-      border-bottom-width: 2px;
-      border-color: rgb(245 158 11);
-      color: rgb(251 191 36);
-    }
-    .tab-inactive {
-      border-bottom-width: 2px;
-      border-color: transparent;
-      color: rgb(148 163 184);
-    }
-  </style>
-</head>
-<body class="min-h-screen text-slate-100">
-
-  <div class="max-w-5xl mx-auto px-4 py-8 space-y-8">
-
-    <!-- HEADER -->
-    <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div>
-        <h1 class="text-3xl font-bold tracking-tight flex items-center gap-2">
-          <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-amber-500 text-slate-900 font-black text-xl">E</span>
-          Euroway Driver Portal
-        </h1>
-        <p class="text-slate-400 text-sm mt-1">
-          Fleet overview, leaderboard, and driver messaging — hosted on GitHub, embeddable in Google Sites.
-        </p>
-      </div>
-      <div class="text-right text-xs text-slate-500">
-        <p>Mode: <span class="text-amber-400 font-semibold">Public (no login)</span></p>
-        <p>Admin code: <span class="font-mono text-amber-300">321321</span></p>
-      </div>
-    </header>
-
-    <!-- TABS -->
-    <nav class="border-b border-slate-800 flex gap-6 text-sm font-medium">
-      <button data-tab="overview" class="pb-3 tab-active flex items-center gap-1">
-        <i data-lucide="gauge" class="w-4 h-4"></i>
-        Overview
-      </button>
-      <button data-tab="messages" class="pb-3 tab-inactive flex items-center gap-1">
-        <i data-lucide="inbox" class="w-4 h-4"></i>
-        Messages
-      </button>
-      <button data-tab="admin" class="pb-3 tab-inactive flex items-center gap-1">
-        <i data-lucide="shield-check" class="w-4 h-4"></i>
-        Admin
-      </button>
-    </nav>
-
-    <!-- OVERVIEW TAB -->
-    <section id="tab-overview" class="space-y-6">
-      <div class="grid md:grid-cols-3 gap-4">
-        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow">
-          <p class="text-xs text-slate-400 mb-1">Total Drivers</p>
-          <p id="stat-total-drivers" class="text-2xl font-bold">–</p>
-        </div>
-        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow">
-          <p class="text-xs text-slate-400 mb-1">Total Messages</p>
-          <p id="stat-total-messages" class="text-2xl font-bold">–</p>
-        </div>
-        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow">
-          <p class="text-xs text-slate-400 mb-1">Last Updated</p>
-          <p id="stat-last-updated" class="text-sm">–</p>
-        </div>
-      </div>
-
-      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow space-y-4">
-        <h2 class="text-lg font-semibold flex items-center gap-2">
-          <i data-lucide="trophy" class="w-5 h-5 text-amber-400"></i>
-          Leaderboard (static example)
-        </h2>
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead class="text-slate-400 border-b border-slate-800">
-              <tr>
-                <th class="text-left py-2 pr-4">Driver</th>
-                <th class="text-left py-2 pr-4">Region</th>
-                <th class="text-left py-2 pr-4">Score</th>
-              </tr>
-            </thead>
-            <tbody id="leaderboard-body" class="divide-y divide-slate-800">
-              <!-- Filled by JS -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- MESSAGES TAB -->
-    <section id="tab-messages" class="hidden space-y-6">
-      <div class="bg-slate-900/60 rounded-2xl p-5 border border-slate-800 shadow-lg space-y-4">
-
-        <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-          <div class="flex-1">
-            <label class="text-sm font-medium text-slate-300 block mb-1">View inbox for:</label>
-            <select id="driver-select" class="bg-slate-800 border border-slate-600 text-white rounded px-3 py-2 w-full sm:w-72"></select>
-            <p class="text-xs text-slate-500 mt-1">
-              Select your name to view messages sent to you.
-            </p>
-          </div>
-        </div>
-
-        <div id="inbox-container">
-          <p id="inbox-empty" class="text-slate-500 text-center py-8">
-            Select a driver to view their inbox.
-          </p>
-        </div>
-
-        <div id="inbox-list" class="space-y-3"></div>
-
-        <div id="msg-detail" class="hidden bg-slate-800 rounded-lg p-5 border border-slate-700">
-          <button id="msg-back" type="button" class="text-amber-400 text-sm mb-3 hover:underline">
-            ← Back to inbox
-          </button>
-          <h3 id="msg-detail-subject" class="font-bold text-lg"></h3>
-          <p id="msg-detail-meta" class="text-xs text-slate-400 mt-1"></p>
-          <p id="msg-detail-body" class="mt-4 text-slate-200 whitespace-pre-wrap"></p>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ADMIN TAB -->
-    <section id="tab-admin" class="hidden space-y-6">
-      <div class="bg-slate-900/60 rounded-2xl p-5 border border-amber-500/40 shadow-lg space-y-4">
-
-        <h2 class="text-xl font-semibold flex items-center gap-2">
-          <i data-lucide="shield-check" class="w-5 h-5 text-amber-400"></i>
-          Admin Messaging
-        </h2>
-
-        <div class="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-2">
-          <label class="text-sm text-slate-300 block mb-1">Admin Access (password required):</label>
-          <input
-            id="admin-code"
-            type="password"
-            class="bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 w-full sm:w-64"
-            placeholder="Enter admin code..."
-          />
-          <p class="text-xs text-slate-500">
-            Use code <span class="font-mono text-amber-400">321321</span> to unlock the send panel.
-          </p>
-          <p id="admin-status" class="text-xs mt-1 text-red-400 hidden"></p>
-        </div>
-
-        <form id="compose-form" class="hidden bg-slate-800 rounded-lg p-5 space-y-4 border border-amber-500/50">
-          <h3 class="font-bold text-lg flex items-center gap-2">
-            <i data-lucide="mail-plus" class="w-5 h-5 text-amber-400"></i>
-            Send Message
-          </h3>
-
-          <div>
-            <label class="text-sm text-slate-400 block mb-1">To (driver):</label>
-            <select id="compose-to" class="bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 w-full"></select>
-          </div>
-
-          <div>
-            <label class="text-sm text-slate-400 block mb-1">Subject:</label>
-            <input
-              id="compose-subject"
-              type="text"
-              class="bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 w-full"
-              required
-            />
-          </div>
-
-          <div>
-            <label class="text-sm text-slate-400 block mb-1">Message:</label>
-            <textarea
-              id="compose-body"
-              rows="4"
-              class="bg-slate-700 border border-slate-600 text-white rounded px-3 py-2 w-full"
-              required
-            ></textarea>
-          </div>
-
-          <button
-            type="submit"
-            class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-5 py-2 rounded-md shadow-sm"
-          >
-            Send
-          </button>
-
-          <p id="compose-status" class="text-sm hidden"></p>
-        </form>
-
-      </div>
-    </section>
-
-  </div>
-
-  <!-- Firebase + App Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      getDocs,
-      query,
-      where,
-      orderBy,
-      serverTimestamp,
-      getCountFromServer
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+    // 🔹 Firebase configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyCR61dTERjizm3IeBYfjJhXwXW8HuBprbM",
-      authDomain: "euroway-vtcv1.firebaseapp.com",
-      projectId: "euroway-vtcv1",
-      storageBucket: "euroway-vtcv1.firebasestorage.app",
-      messagingSenderId: "110649931632",
-      appId: "1:110649931632:web:02ab5942101764d50c81b5",
-      measurementId: "G-JTQJ7QDP5M"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
 
+    // 🔹 Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const DRIVERS = [
-      { id: "john", name: "John", region: "Belgium", score: 98 },
-      { id: "alex", name: "Alex", region: "Netherlands", score: 92 },
-      { id: "maria", name: "Maria", region: "France", score: 89 },
-      { id: "lucas", name: "Lucas", region: "Germany", score: 85 }
-    ];
+    // 🔹 DOM elements
+    const inboxContainer = document.getElementById("inboxContainer");
+    const inboxEmpty = document.getElementById("inboxEmpty");
+    const msgDetail = document.getElementById("msgDetail");
+    const msgDetailSubject = document.getElementById("msgDetailSubject");
+    const msgDetailBody = document.getElementById("msgDetailBody");
+    const msgDetailMeta = document.getElementById("msgDetailMeta");
+    const msgBack = document.getElementById("msgBack");
 
-    const tabButtons = document.querySelectorAll("nav button[data-tab]");
-    const tabOverview = document.getElementById("tab-overview");
-    const tabMessages = document.getElementById("tab-messages");
-    const tabAdmin = document.getElementById("tab-admin");
-
-    const driverSelect = document.getElementById("driver-select");
-    const inboxList = document.getElementById("inbox-list");
-    const inboxEmpty = document.getElementById("inbox-empty");
-    const inboxContainer = document.getElementById("inbox-container");
-
-    const msgDetail = document.getElementById("msg-detail");
-    const msgBack = document.getElementById("msg-back");
-    const msgDetailSubject = document.getElementById("msg-detail-subject");
-    const msgDetailMeta = document.getElementById("msg-detail-meta");
-    const msgDetailBody = document.getElementById("msg-detail-body");
-
-    const adminCodeInput = document.getElementById("admin-code");
-    const adminStatus = document.getElementById("admin-status");
-    const composeForm = document.getElementById("compose-form");
-    const composeTo = document.getElementById("compose-to");
-    const composeSubject = document.getElementById("compose-subject");
-    const composeBody = document.getElementById("compose-body");
-    const composeStatus = document.getElementById("compose-status");
-
-    const statTotalDrivers = document.getElementById("stat-total-drivers");
-    const statTotalMessages = document.getElementById("stat-total-messages");
-    const statLastUpdated = document.getElementById("stat-last-updated");
-    const leaderboardBody = document.getElementById("leaderboard-body");
-
-    function showTab(name) {
-      tabOverview.classList.add("hidden");
-      tabMessages.classList.add("hidden");
-      tabAdmin.classList.add("hidden");
-
-      if (name === "overview") tabOverview.classList.remove("hidden");
-      if (name === "messages") tabMessages.classList.remove("hidden");
-      if (name === "admin") tabAdmin.classList.remove("hidden");
-
-      tabButtons.forEach(btn => {
-        if (btn.dataset.tab === name) {
-          btn.classList.remove("tab-inactive");
-          btn.classList.add("tab-active");
-        } else {
-          btn.classList.remove("tab-active");
-          btn.classList.add("tab-inactive");
-        }
-      });
-    }
-
-    tabButtons.forEach(btn => {
-      btn.addEventListener("click", () => showTab(btn.dataset.tab));
-    });
-
-    function populateDriverSelects() {
-      driverSelect.innerHTML = '<option value="">Select driver...</option>';
-      composeTo.innerHTML = "";
-
-      DRIVERS.forEach(d => {
-        const opt1 = document.createElement("option");
-        opt1.value = d.id;
-        opt1.textContent = d.name;
-        driverSelect.appendChild(opt1);
-
-        const opt2 = document.createElement("option");
-        opt2.value = d.id;
-        opt2.textContent = d.name;
-        composeTo.appendChild(opt2);
-      });
-
-      statTotalDrivers.textContent = DRIVERS.length.toString();
-    }
-
-    function renderLeaderboard() {
-      leaderboardBody.innerHTML = "";
-      const sorted = [...DRIVERS].sort((a, b) => b.score - a.score);
-      sorted.forEach(d => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="py-2 pr-4">${d.name}</td>
-          <td class="py-2 pr-4 text-slate-400">${d.region}</td>
-          <td class="py-2 pr-4 font-semibold text-amber-300">${d.score}</td>
-        `;
-        leaderboardBody.appendChild(tr);
-      });
-    }
-
+    // 🔹 Load inbox messages
     async function loadInbox(driverId) {
-      inboxList.innerHTML = "";
-      msgDetail.classList.add("hidden");
-      inboxContainer.classList.remove("hidden");
-      inboxEmpty.textContent = "Loading messages...";
-
       try {
         const q = query(
           collection(db, "messages"),
@@ -342,53 +43,77 @@
         const snap = await getDocs(q);
 
         if (snap.empty) {
-          inboxList.innerHTML = "";
+          inboxContainer.innerHTML = "";
           inboxEmpty.textContent = "No messages yet for this driver.";
           return;
         }
 
         inboxEmpty.textContent = "";
-        inboxList.innerHTML = "";
+        inboxContainer.innerHTML = "";
 
-        snap.forEach(docSnap => {
+        snap.forEach((docSnap) => {
           const data = docSnap.data();
           const card = document.createElement("button");
-          card.type = "button";
           card.className =
             "w-full text-left bg-slate-800 border border-slate-700 hover:border-amber-400 rounded-lg p-4 flex flex-col gap-1";
-          const created = data.createdAt?.toDate
-            ? data.createdAt.toDate()
-            : null;
-          const dateStr = created
-            ? created.toLocaleString()
-            : "Unknown time";
 
-        card.addEventListener("click", () => {
-  msgDetailSubject.textContent = data.subject || "(no subject)";
-  msgDetailBody.textContent = data.body || "";
-  msgDetailMeta.textContent = `From: Admin • ${dateStr}`;
-  inboxContainer.classList.add("hidden");
-  msgDetail.classList.remove("hidden");
-});
-      });
+          const created = data.createdAt?.toDate ? data.createdAt.toDate() : null;
+          const dateStr = created ? created.toLocaleString() : "Unknown time";
+
+          card.innerHTML = `
+            <div class="flex justify-between items-center">
+              <span class="font-semibold text-sm">${data.subject || "(no subject)"}</span>
+              <span class="text-xs text-slate-400">${dateStr}</span>
+            </div>
+            <p class="text-xs text-slate-400">From: Admin</p>
+            <p class="text-xs text-slate-200 line-clamp-2">${data.body || ""}</p>
+          `;
+
+          card.addEventListener("click", () => {
+            msgDetailSubject.textContent = data.subject || "(no subject)";
+            msgDetailBody.textContent = data.body || "";
+            msgDetailMeta.textContent = `From: Admin • ${dateStr}`;
+            inboxContainer.classList.add("hidden");
+            msgDetail.classList.remove("hidden");
+          });
+
+          inboxContainer.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+        inboxEmpty.textContent = "Error loading messages.";
+      }
+    }
+
+    // 🔹 Back button
+    msgBack.addEventListener("click", () => {
+      msgDetail.classList.add("hidden");
+      inboxContainer.classList.remove("hidden");
     });
-  } catch (err) {
-    console.error(err);
-    inboxEmpty.textContent = "Error loading messages.";
-  }
-}
 
-msgBack.addEventListener("click", () => {
-  msgDetail.classList.add("hidden");
-  inboxContainer.classList.remove("hidden");
-});
+    // 🔹 Initialize UI
+    function populateDriverSelects() {
+      // Placeholder for driver dropdown logic
+    }
 
-populateDriverSelects();
-renderLeaderboard();
-lucide.createIcons();
-</script>
+    function renderLeaderboard() {
+      // Placeholder for leaderboard logic
+    }
+
+    populateDriverSelects();
+    renderLeaderboard();
+    lucide.createIcons();
+  </script>
+</head>
+<body class="bg-slate-900 text-white p-6">
+  <div id="inboxContainer"></div>
+  <p id="inboxEmpty" class="text-slate-400"></p>
+
+  <div id="msgDetail" class="hidden">
+    <button id="msgBack" class="mb-4 text-amber-400 hover:text-amber-300">← Back</button>
+    <h2 id="msgDetailSubject" class="text-lg font-bold"></h2>
+    <p id="msgDetailMeta" class="text-xs text-slate-400 mb-2"></p>
+    <p id="msgDetailBody" class="text-sm"></p>
+  </div>
 </body>
 </html>
-
-
-
