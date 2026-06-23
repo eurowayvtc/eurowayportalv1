@@ -257,17 +257,194 @@
   <!-- FIREBASE + LOGIC -->
   <script type="module">
 
-    /* INSERT YOUR FIREBASE CONFIG HERE */
+    /* YOUR FIREBASE CONFIG (REAL, FROM YOU) */
     const firebaseConfig = {
       apiKey: "AIzaSyCPsIyA6OnFBiQuH9abfto9JRIZZTmTMTo",
-  authDomain: "eurowayportalv2.firebaseapp.com",
-  projectId: "eurowayportalv2",
-  storageBucket: "eurowayportalv2.firebasestorage.app",
-  messagingSenderId: "781209873831",
-  appId: "1:781209873831:web:efb5cf246037cebf559a82",
+      authDomain: "eurowayportalv2.firebaseapp.com",
+      projectId: "eurowayportalv2",
+      storageBucket: "eurowayportalv2.firebasestorage.app",
+      messagingSenderId: "781209873831",
+      appId: "1:781209873831:web:efb5cf246037cebf559a82",
+      measurementId: "G-LBQ84DWJPE"
     };
 
-    /* Your Firebase logic goes here (unchanged) */
+    /* FIREBASE INIT */
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } 
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    /* TAB SWITCHING */
+    const buttons = document.querySelectorAll(".nav-btn");
+    const sections = document.querySelectorAll(".section");
+
+    buttons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        buttons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        sections.forEach(sec => sec.classList.remove("active"));
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    /* ADMIN LOGIN */
+    const adminPassword = "321321";
+
+    document.getElementById("adminLoginBtn").onclick = () => {
+      if (document.getElementById("adminPassword").value === adminPassword) {
+        document.getElementById("adminLocked").style.display = "none";
+        document.getElementById("adminPanel").style.display = "block";
+      }
+    };
+
+    /* LOAD DRIVERS */
+    async function loadDrivers() {
+      const snap = await getDocs(collection(db, "drivers"));
+      const driverSelect = document.getElementById("driverSelect");
+      const msgDriverSelect = document.getElementById("msgDriverSelect");
+      const rankDriverSelect = document.getElementById("rankDriverSelect");
+
+      driverSelect.innerHTML = "";
+      msgDriverSelect.innerHTML = "";
+      rankDriverSelect.innerHTML = "";
+
+      snap.forEach(doc => {
+        const name = doc.data().name;
+        driverSelect.innerHTML += `<option>${name}</option>`;
+        msgDriverSelect.innerHTML += `<option>${name}</option>`;
+        rankDriverSelect.innerHTML += `<option>${name}</option>`;
+      });
+
+      loadInbox();
+    }
+
+    /* ADD DRIVER */
+    document.getElementById("addDriverBtn").onclick = async () => {
+      const name = document.getElementById("newDriverName").value;
+      if (!name) return;
+      await addDoc(collection(db, "drivers"), { name });
+      loadDrivers();
+    };
+
+    /* LOAD INBOX */
+    async function loadInbox() {
+      const driver = document.getElementById("driverSelect").value;
+      const snap = await getDocs(collection(db, "messages"));
+      const inbox = document.getElementById("driverInbox");
+      inbox.innerHTML = "";
+
+      snap.forEach(doc => {
+        const m = doc.data();
+        if (m.driver === driver) {
+          inbox.innerHTML += `
+            <div class="card">
+              <h3>${m.title}</h3>
+              <p>${m.body}</p>
+            </div>
+          `;
+        }
+      });
+    }
+
+    document.getElementById("driverSelect").onchange = loadInbox;
+
+    /* SEND MESSAGE */
+    document.getElementById("sendMsgBtn").onclick = async () => {
+      await addDoc(collection(db, "messages"), {
+        driver: document.getElementById("msgDriverSelect").value,
+        title: document.getElementById("msgTitle").value,
+        body: document.getElementById("msgBody").value
+      });
+    };
+
+    /* FLEET */
+    async function loadFleet() {
+      const snap = await getDocs(collection(db, "fleet"));
+      const list = document.getElementById("fleetList");
+      const adminList = document.getElementById("adminFleetList");
+
+      list.innerHTML = "";
+      adminList.innerHTML = "";
+
+      snap.forEach(docu => {
+        const f = docu.data();
+
+        list.innerHTML += `
+          <div class="card">
+            <p>${f.text}</p>
+            <img class="fleet-image" src="${f.image}">
+          </div>
+        `;
+
+        adminList.innerHTML += `
+          <div class="card">
+            <p>${f.text}</p>
+            <button class="btn btn-danger btn-small" onclick="deleteFleet('${docu.id}')">Delete</button>
+          </div>
+        `;
+      });
+    }
+
+    window.deleteFleet = async (id) => {
+      await deleteDoc(doc(db, "fleet", id));
+      loadFleet();
+    };
+
+    document.getElementById("addFleetBtn").onclick = async () => {
+      await addDoc(collection(db, "fleet"), {
+        text: document.getElementById("fleetText").value,
+        image: document.getElementById("fleetImageUrl").value
+      });
+      loadFleet();
+    };
+
+    /* RANKING */
+    async function loadRanking() {
+      const snap = await getDocs(collection(db, "ranking"));
+      const list = document.getElementById("rankingList");
+      const adminList = document.getElementById("adminRankingList");
+
+      list.innerHTML = "";
+      adminList.innerHTML = "";
+
+      snap.forEach(docu => {
+        const r = docu.data();
+
+        list.innerHTML += `
+          <div class="card">
+            <p>${r.driver}: ${r.km} km</p>
+          </div>
+        `;
+
+        adminList.innerHTML += `
+          <div class="card">
+            <p>${r.driver}: ${r.km} km</p>
+            <button class="btn btn-danger btn-small" onclick="deleteRank('${docu.id}')">Delete</button>
+          </div>
+        `;
+      });
+    }
+
+    window.deleteRank = async (id) => {
+      await deleteDoc(doc(db, "ranking", id));
+      loadRanking();
+    };
+
+    document.getElementById("addRankBtn").onclick = async () => {
+      await addDoc(collection(db, "ranking"), {
+        driver: document.getElementById("rankDriverSelect").value,
+        km: Number(document.getElementById("rankKm").value)
+      });
+      loadRanking();
+    };
+
+    /* INITIAL LOAD */
+    loadDrivers();
+    loadFleet();
+    loadRanking();
 
   </script>
 
