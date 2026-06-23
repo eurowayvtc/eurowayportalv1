@@ -255,9 +255,18 @@
   </main>
 
   <!-- FIREBASE + LOGIC -->
-  <script type="module">
+  <script>
 
-    /* YOUR FIREBASE CONFIG (REAL, FROM YOU) */
+    /* FIREBASE COMPAT SDK (WORKS ON GITHUB PAGES) */
+    document.write(`
+      <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"><\/script>
+      <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"><\/script>
+    `);
+
+  </script>
+
+  <script>
+    /* YOUR FIREBASE CONFIG */
     const firebaseConfig = {
       apiKey: "AIzaSyCPsIyA6OnFBiQuH9abfto9JRIZZTmTMTo",
       authDomain: "eurowayportalv2.firebaseapp.com",
@@ -268,13 +277,9 @@
       measurementId: "G-LBQ84DWJPE"
     };
 
-    /* FIREBASE INIT */
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } 
-      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    /* INIT */
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
     /* TAB SWITCHING */
     const buttons = document.querySelectorAll(".nav-btn");
@@ -302,7 +307,7 @@
 
     /* LOAD DRIVERS */
     async function loadDrivers() {
-      const snap = await getDocs(collection(db, "drivers"));
+      const snap = await db.collection("drivers").get();
       const driverSelect = document.getElementById("driverSelect");
       const msgDriverSelect = document.getElementById("msgDriverSelect");
       const rankDriverSelect = document.getElementById("rankDriverSelect");
@@ -325,14 +330,14 @@
     document.getElementById("addDriverBtn").onclick = async () => {
       const name = document.getElementById("newDriverName").value;
       if (!name) return;
-      await addDoc(collection(db, "drivers"), { name });
+      await db.collection("drivers").add({ name });
       loadDrivers();
     };
 
     /* LOAD INBOX */
     async function loadInbox() {
       const driver = document.getElementById("driverSelect").value;
-      const snap = await getDocs(collection(db, "messages"));
+      const snap = await db.collection("messages").get();
       const inbox = document.getElementById("driverInbox");
       inbox.innerHTML = "";
 
@@ -353,7 +358,7 @@
 
     /* SEND MESSAGE */
     document.getElementById("sendMsgBtn").onclick = async () => {
-      await addDoc(collection(db, "messages"), {
+      await db.collection("messages").add({
         driver: document.getElementById("msgDriverSelect").value,
         title: document.getElementById("msgTitle").value,
         body: document.getElementById("msgBody").value
@@ -362,7 +367,7 @@
 
     /* FLEET */
     async function loadFleet() {
-      const snap = await getDocs(collection(db, "fleet"));
+      const snap = await db.collection("fleet").get();
       const list = document.getElementById("fleetList");
       const adminList = document.getElementById("adminFleetList");
 
@@ -389,12 +394,12 @@
     }
 
     window.deleteFleet = async (id) => {
-      await deleteDoc(doc(db, "fleet", id));
+      await db.collection("fleet").doc(id).delete();
       loadFleet();
     };
 
     document.getElementById("addFleetBtn").onclick = async () => {
-      await addDoc(collection(db, "fleet"), {
+      await db.collection("fleet").add({
         text: document.getElementById("fleetText").value,
         image: document.getElementById("fleetImageUrl").value
       });
@@ -403,7 +408,7 @@
 
     /* RANKING */
     async function loadRanking() {
-      const snap = await getDocs(collection(db, "ranking"));
+      const snap = await db.collection("ranking").get();
       const list = document.getElementById("rankingList");
       const adminList = document.getElementById("adminRankingList");
 
@@ -429,12 +434,12 @@
     }
 
     window.deleteRank = async (id) => {
-      await deleteDoc(doc(db, "ranking", id));
+      await db.collection("ranking").doc(id).delete();
       loadRanking();
     };
 
     document.getElementById("addRankBtn").onclick = async () => {
-      await addDoc(collection(db, "ranking"), {
+      await db.collection("ranking").add({
         driver: document.getElementById("rankDriverSelect").value,
         km: Number(document.getElementById("rankKm").value)
       });
