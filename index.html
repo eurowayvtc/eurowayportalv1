@@ -163,7 +163,9 @@
       <div class="card">
         <select id="driverSelect"></select>
       </div>
-      <button class="btn btn-danger btn-small" onclick="deleteAllMessagesForDriver()">Delete all messages for this driver</button>
+
+      <button id="deleteAllBtn" class="btn btn-danger btn-small" style="display:none;" onclick="deleteAllMessagesForDriver()">Delete all messages for this driver</button>
+
       <div id="driverInbox"></div>
     </section>
 
@@ -249,6 +251,8 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    window.isAdmin = false;
+
     const buttons = document.querySelectorAll(".nav-btn");
     const sections = document.querySelectorAll(".section");
 
@@ -265,9 +269,12 @@
 
     document.getElementById("adminLoginBtn").onclick = () => {
       if (document.getElementById("adminPassword").value === adminPassword) {
+        window.isAdmin = true;
         document.getElementById("adminLocked").style.display = "none";
         document.getElementById("adminPanel").style.display = "block";
+        document.getElementById("deleteAllBtn").style.display = "inline-block";
         loadAdminMessages();
+        loadInbox();
       }
     };
 
@@ -306,12 +313,18 @@
 
       snap.forEach(doc => {
         const m = doc.data();
+
+        let deleteBtn = "";
+        if (window.isAdmin === true) {
+          deleteBtn = `<button class="btn btn-danger btn-small" onclick="deleteMessage('${doc.id}')">Delete</button>`;
+        }
+
         if (m.driver === driver) {
           inbox.innerHTML += `
             <div class="card">
               <h3>${m.title}</h3>
               <p>${m.body}</p>
-              <button class="btn btn-danger btn-small" onclick="deleteMessage('${doc.id}')">Delete</button>
+              ${deleteBtn}
             </div>
           `;
         }
