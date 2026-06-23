@@ -2,105 +2,566 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Euroway Driver Portal</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Firebase compat scripts -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
-  <script>
-    // 🔹 Firebase configuration
-   const firebaseConfig = {
-  apiKey: "AIzaSyCR61dTERjZim3IeBYfjHhXwXW8HuBprbM",
-  authDomain: "euroway-vtcv1.firebaseapp.com",
-  projectId: "euroway-vtcv1",
-  storageBucket: "euroway-vtcv1.firebasestorage.app",
-  messagingSenderId: "110649931632",
-  appId: "1:110649931632:web:02ab5942101764d50c81b5",
-    };
-
-    // 🔹 Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // 🔹 Load inbox messages
-    async function loadInbox() {
-      const inboxContainer = document.getElementById("inboxContainer");
-      const inboxEmpty = document.getElementById("inboxEmpty");
-      const msgDetail = document.getElementById("msgDetail");
-      const msgDetailSubject = document.getElementById("msgDetailSubject");
-      const msgDetailBody = document.getElementById("msgDetailBody");
-      const msgDetailMeta = document.getElementById("msgDetailMeta");
-      const msgBack = document.getElementById("msgBack");
-
-      try {
-        const snap = await db.collection("messages").orderBy("createdAt", "desc").get();
-
-        if (snap.empty) {
-          inboxEmpty.textContent = "No messages yet.";
-          return;
-        }
-
-        inboxEmpty.textContent = "";
-        inboxContainer.innerHTML = "";
-
-        snap.forEach(doc => {
-          const data = doc.data();
-          const card = document.createElement("button");
-          card.className =
-            "w-full text-left bg-slate-800 border border-slate-700 hover:border-amber-400 rounded-lg p-4 flex flex-col gap-1";
-
-          const created = data.createdAt?.toDate ? data.createdAt.toDate() : null;
-          const dateStr = created ? created.toLocaleString() : "Unknown time";
-
-          card.innerHTML = `
-            <div class="flex justify-between items-center">
-              <span class="font-semibold text-sm">${data.subject || "(no subject)"}</span>
-              <span class="text-xs text-slate-400">${dateStr}</span>
-            </div>
-            <p class="text-xs text-slate-400">From: Admin</p>
-            <p class="text-xs text-slate-200 line-clamp-2">${data.body || ""}</p>
-          `;
-
-          card.addEventListener("click", () => {
-            msgDetailSubject.textContent = data.subject || "(no subject)";
-            msgDetailBody.textContent = data.body || "";
-            msgDetailMeta.textContent = `From: Admin • ${dateStr}`;
-            inboxContainer.classList.add("hidden");
-            msgDetail.classList.remove("hidden");
-          });
-
-          inboxContainer.appendChild(card);
-        });
-      } catch (err) {
-        console.error(err);
-        inboxEmpty.textContent = "Error loading messages.";
-      }
-
-      msgBack.addEventListener("click", () => {
-        msgDetail.classList.add("hidden");
-        inboxContainer.classList.remove("hidden");
-      });
+  <title>Euroway VTC Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #0b1220;
+      color: #e5e7eb;
     }
-
-    // 🔹 Initialize portal
-    window.onload = loadInbox;
-  </script>
+    header {
+      background: #111827;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1f2937;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+    nav button {
+      background: #1f2937;
+      border: none;
+      color: #e5e7eb;
+      padding: 8px 12px;
+      margin-left: 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    nav button.active {
+      background: #2563eb;
+    }
+    main {
+      padding: 16px 24px 40px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .tab {
+      display: none;
+    }
+    .tab.active {
+      display: block;
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+    .card {
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 6px 8px;
+      margin-top: 4px;
+      border-radius: 4px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 13px;
+    }
+    textarea {
+      min-height: 60px;
+      resize: vertical;
+    }
+    .btn {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+    }
+    .btn-danger {
+      background: #b91c1c;
+      color: white;
+    }
+    .btn-small {
+      padding: 4px 8px;
+      font-size: 11px;
+      margin-left: 4px;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .row > div {
+      flex: 1;
+      min-width: 220px;
+    }
+    img.fleet-image {
+      max-width: 100%;
+      border-radius: 4px;
+      margin-top: 6px;
+    }
+    .muted {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .inline {
+      display: inline-block;
+    }
+  </style>
 </head>
+<body>
+<header>
+  <h1>Euroway VTC Portal</h1>
+  <nav>
+    <button data-tab="home" class="active">Home</button>
+    <button data-tab="drivers">Drivers inbox</button>
+    <button data-tab="fleet">Fleet</button>
+    <button data-tab="ranking">Ranking</button>
+    <button data-tab="admin">Admin</button>
+  </nav>
+</header>
 
-<body class="bg-slate-900 text-white p-6">
-  <h1 class="text-2xl font-bold mb-4">Euroway Driver Portal</h1>
+<main>
+  <!-- HOME -->
+  <section id="tab-home" class="tab active">
+    <h2>Welcome to Euroway VTC Portal</h2>
+    <p>
+      This portal is for Euroway VTC drivers to view their messages, fleet updates and rankings.
+      No login required—just select your name in the Drivers inbox tab.
+    </p>
+  </section>
 
-  <div id="inboxContainer"></div>
-  <p id="inboxEmpty" class="text-slate-400"></p>
+  <!-- DRIVERS INBOX -->
+  <section id="tab-drivers" class="tab">
+    <h2>Drivers inbox</h2>
+    <label for="driverSelect">Select your name</label>
+    <select id="driverSelect">
+      <option value="">-- choose driver --</option>
+    </select>
+    <div id="driverInbox" style="margin-top:14px;"></div>
+  </section>
 
-  <div id="msgDetail" class="hidden">
-    <button id="msgBack" class="mb-4 text-amber-400 hover:text-amber-300">← Back</button>
-    <h2 id="msgDetailSubject" class="text-lg font-bold"></h2>
-    <p id="msgDetailMeta" class="text-xs text-slate-400 mb-2"></p>
-    <p id="msgDetailBody" class="text-sm"></p>
-  </div>
+  <!-- FLEET -->
+  <section id="tab-fleet" class="tab">
+    <h2>Fleet updates</h2>
+    <div id="fleetList"></div>
+  </section>
+
+  <!-- RANKING -->
+  <section id="tab-ranking" class="tab">
+    <h2>Driver ranking (km)</h2>
+    <div id="rankingList"></div>
+  </section>
+
+  <!-- ADMIN -->
+  <section id="tab-admin" class="tab">
+    <h2>Admin</h2>
+    <div id="adminLocked">
+      <p>Enter admin password to manage drivers, messages, fleet and ranking.</p>
+      <input type="password" id="adminPassword" placeholder="Admin password" />
+      <button class="btn btn-primary" id="adminLoginBtn">Unlock</button>
+      <p class="muted">Hint (for you): 321321</p>
+    </div>
+
+    <div id="adminPanel" style="display:none; margin-top:16px;">
+      <div class="row">
+        <!-- DRIVERS MANAGEMENT -->
+        <div>
+          <h3>Drivers</h3>
+          <div class="card">
+            <label for="newDriverName">Add new driver</label>
+            <input id="newDriverName" placeholder="Driver name" />
+            <button class="btn btn-primary" id="addDriverBtn">Add driver</button>
+          </div>
+          <div class="card">
+            <h4>Existing drivers</h4>
+            <div id="adminDriversList"></div>
+          </div>
+        </div>
+
+        <!-- MESSAGES -->
+        <div>
+          <h3>Messages to drivers</h3>
+          <div class="card">
+            <label for="msgDriverSelect">Select driver</label>
+            <select id="msgDriverSelect">
+              <option value="">-- choose driver --</option>
+            </select>
+            <label for="msgTitle">Title</label>
+            <input id="msgTitle" placeholder="Message title" />
+            <label for="msgBody">Message</label>
+            <textarea id="msgBody" placeholder="Write your message"></textarea>
+            <button class="btn btn-primary" id="sendMsgBtn">Send message</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:16px;">
+        <!-- FLEET ADMIN -->
+        <div>
+          <h3>Fleet</h3>
+          <div class="card">
+            <label for="fleetText">Fleet text</label>
+            <textarea id="fleetText" placeholder="Short description"></textarea>
+            <label for="fleetImageUrl">Image URL</label>
+            <input id="fleetImageUrl" placeholder="https://... (image link)" />
+            <button class="btn btn-primary" id="addFleetBtn">Add fleet item</button>
+            <p class="muted">
+              Tip: host images on any image host or Firebase Storage and paste the URL here.
+            </p>
+          </div>
+          <div class="card">
+            <h4>Fleet items</h4>
+            <div id="adminFleetList"></div>
+          </div>
+        </div>
+
+        <!-- RANKING ADMIN -->
+        <div>
+          <h3>Ranking</h3>
+          <div class="card">
+            <label for="rankDriverSelect">Select driver</label>
+            <select id="rankDriverSelect">
+              <option value="">-- choose driver --</option>
+            </select>
+            <label for="rankKm">Kilometers</label>
+            <input id="rankKm" type="number" min="0" placeholder="e.g. 1234" />
+            <button class="btn btn-primary" id="addRankBtn">Add / update ranking</button>
+          </div>
+          <div class="card">
+            <h4>Ranking entries</h4>
+            <div id="adminRankingList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Firebase + App logic -->
+<script type="module">
+  // TODO: replace with your Firebase config from the Firebase console
+  // (Project settings -> General -> Your apps -> Web app)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    doc,
+    addDoc,
+    setDoc,
+    getDocs,
+    deleteDoc,
+    onSnapshot,
+    query,
+    orderBy
+  } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCPsIyA6OnFBiQuH9abfto9JRIZZTmTMTo",
+    authDomain: "eurowayportalv2.firebaseapp.com",
+    projectId: "eurowayportalv2",
+    storageBucket: "eurowayportalv2.firebasestorage.app",
+    messagingSenderId: "781209873831",
+    appId: "1:781209873831:web:efb5cf246037cebf559a82"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Collections
+  const driversCol = collection(db, "drivers");
+  const fleetCol = collection(db, "fleet");
+  const rankingCol = collection(db, "ranking");
+  // For messages we use subcollections: drivers/{driverId}/messages
+
+  // --- UI helpers: tabs ---
+  const tabButtons = document.querySelectorAll("nav button");
+  const tabs = {
+    home: document.getElementById("tab-home"),
+    drivers: document.getElementById("tab-drivers"),
+    fleet: document.getElementById("tab-fleet"),
+    ranking: document.getElementById("tab-ranking"),
+    admin: document.getElementById("tab-admin"),
+  };
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      tabButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const tabName = btn.getAttribute("data-tab");
+      Object.entries(tabs).forEach(([name, el]) => {
+        el.classList.toggle("active", name === tabName);
+      });
+    });
+  });
+
+  // --- Admin password gate ---
+  const ADMIN_PASSWORD = "321321";
+  const adminLocked = document.getElementById("adminLocked");
+  const adminPanel = document.getElementById("adminPanel");
+  document.getElementById("adminLoginBtn").addEventListener("click", () => {
+    const val = document.getElementById("adminPassword").value.trim();
+    if (val === ADMIN_PASSWORD) {
+      adminLocked.style.display = "none";
+      adminPanel.style.display = "block";
+    } else {
+      alert("Wrong password.");
+    }
+  });
+
+  // --- DOM elements ---
+  const driverSelect = document.getElementById("driverSelect");
+  const driverInbox = document.getElementById("driverInbox");
+
+  const adminDriversList = document.getElementById("adminDriversList");
+  const msgDriverSelect = document.getElementById("msgDriverSelect");
+  const rankDriverSelect = document.getElementById("rankDriverSelect");
+
+  const fleetList = document.getElementById("fleetList");
+  const adminFleetList = document.getElementById("adminFleetList");
+
+  const rankingList = document.getElementById("rankingList");
+  const adminRankingList = document.getElementById("adminRankingList");
+
+  // --- Load drivers and keep in memory ---
+  let driversCache = []; // {id, name}
+
+  function renderDriversSelects() {
+    const selects = [driverSelect, msgDriverSelect, rankDriverSelect];
+    selects.forEach(sel => {
+      const current = sel.value;
+      sel.innerHTML = '<option value="">-- choose driver --</option>';
+      driversCache.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d.id;
+        opt.textContent = d.name;
+        sel.appendChild(opt);
+      });
+      if (current) sel.value = current;
+    });
+
+    // Admin drivers list
+    adminDriversList.innerHTML = "";
+    driversCache.forEach(d => {
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = `
+        <strong>${d.name}</strong>
+        <button class="btn btn-danger btn-small" data-id="${d.id}">Delete driver</button>
+      `;
+      adminDriversList.appendChild(div);
+    });
+
+    adminDriversList.querySelectorAll("button[data-id]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        if (!confirm("Delete this driver and all their messages?")) return;
+        // delete driver doc
+        await deleteDoc(doc(driversCol, id));
+        // messages subcollection deletion is not automatic; for small scale we ignore or handle later
+        alert("Driver deleted (messages subcollection not auto-deleted in Firestore UI).");
+      });
+    });
+  }
+
+  async function loadDrivers() {
+    const snap = await getDocs(driversCol);
+    driversCache = [];
+    snap.forEach(d => {
+      driversCache.push({ id: d.id, ...d.data() });
+    });
+    driversCache.sort((a, b) => a.name.localeCompare(b.name));
+    renderDriversSelects();
+  }
+
+  // --- Drivers inbox (driver view) ---
+  let currentInboxUnsub = null;
+
+  driverSelect.addEventListener("change", () => {
+    const driverId = driverSelect.value;
+    driverInbox.innerHTML = "";
+    if (currentInboxUnsub) {
+      currentInboxUnsub();
+      currentInboxUnsub = null;
+    }
+    if (!driverId) return;
+
+    const msgsCol = collection(db, "drivers", driverId, "messages");
+    const q = query(msgsCol, orderBy("createdAt", "desc"));
+    currentInboxUnsub = onSnapshot(q, snap => {
+      driverInbox.innerHTML = "";
+      if (snap.empty) {
+        driverInbox.innerHTML = "<p>No messages yet.</p>";
+        return;
+      }
+      snap.forEach(docSnap => {
+        const m = docSnap.data();
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <strong>${m.title || "Message"}</strong>
+          <p>${m.body || ""}</p>
+          <p class="muted">${m.createdAt ? new Date(m.createdAt).toLocaleString() : ""}</p>
+        `;
+        driverInbox.appendChild(card);
+      });
+    });
+  });
+
+  // --- Admin: add driver ---
+  document.getElementById("addDriverBtn").addEventListener("click", async () => {
+    const name = document.getElementById("newDriverName").value.trim();
+    if (!name) return alert("Enter driver name.");
+    await addDoc(driversCol, { name });
+    document.getElementById("newDriverName").value = "";
+    await loadDrivers();
+  });
+
+  // --- Admin: send message to driver ---
+  document.getElementById("sendMsgBtn").addEventListener("click", async () => {
+    const driverId = msgDriverSelect.value;
+    const title = document.getElementById("msgTitle").value.trim();
+    const body = document.getElementById("msgBody").value.trim();
+    if (!driverId) return alert("Choose a driver.");
+    if (!body) return alert("Write a message.");
+
+    const msgsCol = collection(db, "drivers", driverId, "messages");
+    await addDoc(msgsCol, {
+      title,
+      body,
+      createdAt: Date.now()
+    });
+    document.getElementById("msgTitle").value = "";
+    document.getElementById("msgBody").value = "";
+    alert("Message sent.");
+  });
+
+  // --- Fleet: realtime list ---
+  function subscribeFleet() {
+    const qFleet = query(fleetCol, orderBy("createdAt", "desc"));
+    onSnapshot(qFleet, snap => {
+      fleetList.innerHTML = "";
+      adminFleetList.innerHTML = "";
+      snap.forEach(docSnap => {
+        const f = docSnap.data();
+        const id = docSnap.id;
+
+        // Public view
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <p>${f.text || ""}</p>
+          ${f.imageUrl ? `<img class="fleet-image" src="${f.imageUrl}" alt="Fleet image" />` : ""}
+          <p class="muted">${f.createdAt ? new Date(f.createdAt).toLocaleString() : ""}</p>
+        `;
+        fleetList.appendChild(card);
+
+        // Admin view
+        const adminCard = document.createElement("div");
+        adminCard.className = "card";
+        adminCard.innerHTML = `
+          <p>${f.text || ""}</p>
+          ${f.imageUrl ? `<img class="fleet-image" src="${f.imageUrl}" alt="Fleet image" />` : ""}
+          <button class="btn btn-danger btn-small" data-id="${id}">Delete</button>
+        `;
+        adminFleetList.appendChild(adminCard);
+      });
+
+      adminFleetList.querySelectorAll("button[data-id]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          if (!confirm("Delete this fleet item?")) return;
+          await deleteDoc(doc(fleetCol, id));
+        });
+      });
+    });
+  }
+
+  document.getElementById("addFleetBtn").addEventListener("click", async () => {
+    const text = document.getElementById("fleetText").value.trim();
+    const imageUrl = document.getElementById("fleetImageUrl").value.trim();
+    if (!text && !imageUrl) return alert("Enter text or image URL.");
+    await addDoc(fleetCol, {
+      text,
+      imageUrl,
+      createdAt: Date.now()
+    });
+    document.getElementById("fleetText").value = "";
+    document.getElementById("fleetImageUrl").value = "";
+  });
+
+  // --- Ranking: realtime list ---
+  function subscribeRanking() {
+    const qRank = query(rankingCol, orderBy("km", "desc"));
+    onSnapshot(qRank, snap => {
+      rankingList.innerHTML = "";
+      adminRankingList.innerHTML = "";
+      snap.forEach(docSnap => {
+        const r = docSnap.data();
+        const id = docSnap.id;
+        const line = document.createElement("div");
+        line.className = "card";
+        line.innerHTML = `
+          <strong>${r.driverName || "Unknown"}</strong> – ${r.km || 0} km
+        `;
+        rankingList.appendChild(line);
+
+        const adminLine = document.createElement("div");
+        adminLine.className = "card";
+        adminLine.innerHTML = `
+          <strong>${r.driverName || "Unknown"}</strong> – ${r.km || 0} km
+          <button class="btn btn-danger btn-small" data-id="${id}">Delete</button>
+        `;
+        adminRankingList.appendChild(adminLine);
+      });
+
+      adminRankingList.querySelectorAll("button[data-id]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          if (!confirm("Delete this ranking entry?")) return;
+          await deleteDoc(doc(rankingCol, id));
+        });
+      });
+    });
+  }
+
+  document.getElementById("addRankBtn").addEventListener("click", async () => {
+    const driverId = rankDriverSelect.value;
+    const kmVal = document.getElementById("rankKm").value;
+    if (!driverId) return alert("Choose a driver.");
+    if (!kmVal) return alert("Enter kilometers.");
+    const km = Number(kmVal);
+    const driver = driversCache.find(d => d.id === driverId);
+    const driverName = driver ? driver.name : "Unknown";
+
+    // Use driverId as document id so you overwrite/update same driver
+    await setDoc(doc(rankingCol, driverId), {
+      driverId,
+      driverName,
+      km,
+      updatedAt: Date.now()
+    });
+    document.getElementById("rankKm").value = "";
+  });
+
+  // --- Init ---
+  (async function init() {
+    await loadDrivers();
+    subscribeFleet();
+    subscribeRanking();
+  })();
+</script>
 </body>
 </html>
