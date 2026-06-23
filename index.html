@@ -229,7 +229,7 @@
           <div id="adminRankingList"></div>
         </div>
 
-        <!-- ⭐ NEW: DELETE DRIVER + INBOX -->
+        <!-- ⭐ DELETE DRIVER + INBOX -->
         <div class="card">
           <h3>Delete Driver</h3>
           <select id="deleteDriverSelect"></select>
@@ -240,272 +240,282 @@
     </section>
 
   </main>
+
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCPsIyA6OnFBiQuH9abfto9JRIZZTmTMTo",
-      authDomain: "eurowayportalv2.firebaseapp.com",
-      projectId: "eurowayportalv2",
-      storageBucket: "eurowayportalv2.firebasestorage.app",
-      messagingSenderId: "781209873831",
-      appId: "1:781209873831:web:efb5cf246037cebf559a82",
-      measurementId: "G-LBQ84DWJPE"
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCPsIyA6OnFBiQuH9abfto9JRIZZTmTMTo",
+    authDomain: "eurowayportalv2.firebaseapp.com",
+    projectId: "eurowayportalv2",
+    storageBucket: "eurowayportalv2.firebasestorage.app",
+    messagingSenderId: "781209873831",
+    appId: "1:781209873831:web:efb5cf246037cebf559a82",
+    measurementId: "G-LBQ84DWJPE"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  window.isAdmin = false;
+
+  /* TAB SWITCHING */
+  const buttons = document.querySelectorAll(".nav-btn");
+  const sections = document.querySelectorAll(".section");
+
+  buttons.forEach(btn => {
+    btn.onclick = () => {
+      buttons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      sections.forEach(s => s.classList.remove("active"));
+      document.getElementById(btn.dataset.tab).classList.add("active");
     };
+  });
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+  /* ADMIN LOGIN */
+  const adminPassword = "321321";
 
-    window.isAdmin = false;
+  document.getElementById("adminLoginBtn").onclick = () => {
+    if (document.getElementById("adminPassword").value === adminPassword) {
+      window.isAdmin = true;
+      document.getElementById("adminLocked").style.display = "none";
+      document.getElementById("adminPanel").style.display = "block";
+      document.getElementById("deleteAllBtn").style.display = "inline-block";
 
-    const buttons = document.querySelectorAll(".nav-btn");
-    const sections = document.querySelectorAll(".section");
+      loadAdminMessages();
+      loadDeleteDriverList();
+      loadInbox();
+    }
+  };
 
-    buttons.forEach(btn => {
-      btn.onclick = () => {
-        buttons.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        sections.forEach(s => s.classList.remove("active"));
-        document.getElementById(btn.dataset.tab).classList.add("active");
-      };
+  /* LOAD DRIVERS */
+  async function loadDrivers() {
+    const snap = await db.collection("drivers").get();
+    const driverSelect = document.getElementById("driverSelect");
+    const msgDriverSelect = document.getElementById("msgDriverSelect");
+    const rankDriverSelect = document.getElementById("rankDriverSelect");
+
+    driverSelect.innerHTML = "";
+    msgDriverSelect.innerHTML = "";
+    rankDriverSelect.innerHTML = "";
+
+    snap.forEach(doc => {
+      const name = doc.data().name;
+      driverSelect.innerHTML += `<option>${name}</option>`;
+      msgDriverSelect.innerHTML += `<option>${name}</option>`;
+      rankDriverSelect.innerHTML += `<option>${name}</option>`;
     });
 
-    const adminPassword = "321321";
+    loadInbox();
+  }
 
-    document.getElementById("adminLoginBtn").onclick = () => {
-      if (document.getElementById("adminPassword").value === adminPassword) {
-        window.isAdmin = true;
-        document.getElementById("adminLocked").style.display = "none";
-        document.getElementById("adminPanel").style.display = "block";
-        document.getElementById("deleteAllBtn").style.display = "inline-block";
+  document.getElementById("addDriverBtn").onclick = async () => {
+    const name = document.getElementById("newDriverName").value;
+    if (!name) return;
+    await db.collection("drivers").add({ name });
+    loadDrivers();
+    loadDeleteDriverList();
+  };
 
-        loadAdminMessages();
-        loadDeleteDriverList();
-        loadInbox();
+  /* LOAD INBOX */
+  async function loadInbox() {
+    const driver = document.getElementById("driverSelect").value;
+    const snap = await db.collection("messages").get();
+    const inbox = document.getElementById("driverInbox");
+    inbox.innerHTML = "";
+
+    snap.forEach(doc => {
+      const m = doc.data();
+
+      let deleteBtn = "";
+      if (window.isAdmin === true) {
+        deleteBtn = `<button class="btn btn-danger btn-small" onclick="deleteMessage('${doc.id}')">Delete</button>`;
       }
-    };
 
-    async function loadDrivers() {
-      const snap = await db.collection("drivers").get();
-      const driverSelect = document.getElementById("driverSelect");
-      const msgDriverSelect = document.getElementById("msgDriverSelect");
-      const rankDriverSelect = document.getElementById("rankDriverSelect");
-
-      driverSelect.innerHTML = "";
-      msgDriverSelect.innerHTML = "";
-      rankDriverSelect.innerHTML = "";
-
-      snap.forEach(doc => {
-        const name = doc.data().name;
-        driverSelect.innerHTML += `<option>${name}</option>`;
-        msgDriverSelect.innerHTML += `<option>${name}</option>`;
-        rankDriverSelect.innerHTML += `<option>${name}</option>`;
-      });
-
-      loadInbox();
-    }
-
-    document.getElementById("addDriverBtn").onclick = async () => {
-      const name = document.getElementById("newDriverName").value;
-      if (!name) return;
-      await db.collection("drivers").add({ name });
-      loadDrivers();
-      loadDeleteDriverList();
-    };
-
-    async function loadInbox() {
-      const driver = document.getElementById("driverSelect").value;
-      const snap = await db.collection("messages").get();
-      const inbox = document.getElementById("driverInbox");
-      inbox.innerHTML = "";
-
-      snap.forEach(doc => {
-        const m = doc.data();
-
-        let deleteBtn = "";
-        if (window.isAdmin === true) {
-          deleteBtn = `<button class="btn btn-danger btn-small" onclick="deleteMessage('${doc.id}')">Delete</button>`;
-        }
-
-        if (m.driver === driver) {
-          inbox.innerHTML += `
-            <div class="card">
-              <h3>${m.title}</h3>
-              <p>${m.body}</p>
-              ${deleteBtn}
-            </div>
-          `;
-        }
-      });
-    }
-
-    document.getElementById("driverSelect").onchange = loadInbox;
-
-    document.getElementById("sendMsgBtn").onclick = async () => {
-      await db.collection("messages").add({
-        driver: document.getElementById("msgDriverSelect").value,
-        title: document.getElementById("msgTitle").value,
-        body: document.getElementById("msgBody").value
-      });
-      loadAdminMessages();
-      loadInbox();
-    };
-
-    async function loadAdminMessages() {
-      const snap = await db.collection("messages").get();
-      const list = document.getElementById("adminMessagesList");
-      list.innerHTML = "";
-
-      snap.forEach(doc => {
-        const m = doc.data();
-        list.innerHTML += `
+      if (m.driver === driver) {
+        inbox.innerHTML += `
           <div class="card">
             <h3>${m.title}</h3>
             <p>${m.body}</p>
-            <p><b>${m.driver}</b></p>
-            <button class="btn btn-danger btn-small" onclick="deleteMessage('${doc.id}')">Delete</button>
+            ${deleteBtn}
           </div>
         `;
-      });
-    }
+      }
+    });
+  }
 
-    window.deleteMessage = async (id) => {
-      await db.collection("messages").doc(id).delete();
-      loadAdminMessages();
-      loadInbox();
-    };
+  document.getElementById("driverSelect").onchange = loadInbox;
 
-    window.deleteAllMessagesForDriver = async () => {
-      const driver = document.getElementById("driverSelect").value;
-      const snap = await db.collection("messages").where("driver", "==", driver).get();
+  /* SEND MESSAGE */
+  document.getElementById("sendMsgBtn").onclick = async () => {
+    await db.collection("messages").add({
+      driver: document.getElementById("msgDriverSelect").value,
+      title: document.getElementById("msgTitle").value,
+      body: document.getElementById("msgBody").value
+    });
+    loadAdminMessages();
+    loadInbox();
+  };
 
-      const batch = db.batch();
-      snap.forEach(doc => batch.delete(doc.ref));
-      await batch.commit();
+  /* ADMIN MESSAGES */
+  async function loadAdminMessages() {
+    const snap = await db.collection("messages").get();
+    const list = document.getElementById("adminMessagesList");
+    list.innerHTML = "";
 
-      loadAdminMessages();
-      loadInbox();
-    };
+    snap.forEach(doc => {
+      const m = doc.data();
+      list.innerHTML += `
+        <div class="card">
+          <h3>${m.title}</h3>
+          <p>${m.body}</p>
+          <p><b>${m.driver}</b></p>
+          <button class="btn btn-danger btn-small" onclick="deleteMessage('${doc.id}')">Delete</button>
+        </div>
+      `;
+    });
+  }
 
-    async function loadFleet() {
-      const snap = await db.collection("fleet").get();
-      const list = document.getElementById("fleetList");
-      const adminList = document.getElementById("adminFleetList");
+  window.deleteMessage = async (id) => {
+    await db.collection("messages").doc(id).delete();
+    loadAdminMessages();
+    loadInbox();
+  };
 
-      list.innerHTML = "";
-      adminList.innerHTML = "";
+  /* DELETE ALL MESSAGES FOR DRIVER */
+  window.deleteAllMessagesForDriver = async () => {
+    const driver = document.getElementById("driverSelect").value;
+    const snap = await db.collection("messages").where("driver", "==", driver).get();
 
-      snap.forEach(doc => {
-        const f = doc.data();
+    const batch = db.batch();
+    snap.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
 
-        list.innerHTML += `
-          <div class="card">
-            <p>${f.text}</p>
-            <img class="fleet-image" src="${f.image}">
-          </div>
-        `;
+    loadAdminMessages();
+    loadInbox();
+  };
 
-        adminList.innerHTML += `
-          <div class="card">
-            <p>${f.text}</p>
-            <button class="btn btn-danger btn-small" onclick="deleteFleet('${doc.id}')">Delete</button>
-          </div>
-        `;
-      });
-    }
+  /* FLEET */
+  async function loadFleet() {
+    const snap = await db.collection("fleet").get();
+    const list = document.getElementById("fleetList");
+    const adminList = document.getElementById("adminFleetList");
 
-    window.deleteFleet = async (id) => {
-      await db.collection("fleet").doc(id).delete();
-      loadFleet();
-    };
+    list.innerHTML = "";
+    adminList.innerHTML = "";
 
-    document.getElementById("addFleetBtn").onclick = async () => {
-      await db.collection("fleet").add({
-        text: document.getElementById("fleetText").value,
-        image: document.getElementById("fleetImageUrl").value
-      });
-      loadFleet();
-    };
+    snap.forEach(doc => {
+      const f = doc.data();
 
-    async function loadRanking() {
-      const snap = await db.collection("ranking").get();
-      const list = document.getElementById("rankingList");
-      const adminList = document.getElementById("adminRankingList");
+      list.innerHTML += `
+        <div class="card">
+          <p>${f.text}</p>
+          <img class="fleet-image" src="${f.image}">
+        </div>
+      `;
 
-      list.innerHTML = "";
-      adminList.innerHTML = "";
+      adminList.innerHTML += `
+        <div class="card">
+          <p>${f.text}</p>
+          <button class="btn btn-danger btn-small" onclick="deleteFleet('${doc.id}')">Delete</button>
+        </div>
+      `;
+    });
+  }
 
-      snap.forEach(doc => {
-        const r = doc.data();
+  window.deleteFleet = async (id) => {
+    await db.collection("fleet").doc(id).delete();
+    loadFleet();
+  };
 
-        list.innerHTML += `
-          <div class="card">
-            <p>${r.driver}: ${r.km} km</p>
-          </div>
-        `;
+  document.getElementById("addFleetBtn").onclick = async () => {
+    await db.collection("fleet").add({
+      text: document.getElementById("fleetText").value,
+      image: document.getElementById("fleetImageUrl").value
+    });
+    loadFleet();
+  };
 
-        adminList.innerHTML += `
-          <div class="card">
-            <p>${r.driver}: ${r.km} km</p>
-            <button class="btn btn-danger btn-small" onclick="deleteRank('${doc.id}')">Delete</button>
-          </div>
-        `;
-      });
-    }
+  /* RANKING */
+  async function loadRanking() {
+    const snap = await db.collection("ranking").get();
+    const list = document.getElementById("rankingList");
+    const adminList = document.getElementById("adminRankingList");
 
-    window.deleteRank = async (id) => {
-      await db.collection("ranking").doc(id).delete();
-      loadRanking();
-    };
+    list.innerHTML = "";
+    adminList.innerHTML = "";
 
-    document.getElementById("addRankBtn").onclick = async () => {
-      await db.collection("ranking").add({
-        driver: document.getElementById("rankDriverSelect").value,
-        km: Number(document.getElementById("rankKm").value)
-      });
-      loadRanking();
-    };
+    snap.forEach(doc => {
+      const r = doc.data();
 
-    /* ⭐ NEW: LOAD DRIVER LIST FOR DELETE DROPDOWN */
-    async function loadDeleteDriverList() {
-      const snap = await db.collection("drivers").get();
-      const select = document.getElementById("deleteDriverSelect");
-      select.innerHTML = "";
+      list.innerHTML += `
+        <div class="card">
+          <p>${r.driver}: ${r.km} km</p>
+        </div>
+      `;
 
-      snap.forEach(doc => {
-        const name = doc.data().name;
-        select.innerHTML += `<option value="${doc.id}">${name}</option>`;
-      });
-    }
+      adminList.innerHTML += `
+        <div class="card">
+          <p>${r.driver}: ${r.km} km</p>
+          <button class="btn btn-danger btn-small" onclick="deleteRank('${doc.id}')">Delete</button>
+        </div>
+      `;
+    });
+  }
 
-    /* ⭐ NEW: DELETE DRIVER + INBOX */
-    window.deleteDriverAndInbox = async () => {
-      const driverId = document.getElementById("deleteDriverSelect").value;
+  window.deleteRank = async (id) => {
+    await db.collection("ranking").doc(id).delete();
+    loadRanking();
+  };
 
-      const driverDoc = await db.collection("drivers").doc(driverId).get();
-      const driverName = driverDoc.data().name;
+  document.getElementById("addRankBtn").onclick = async () => {
+    await db.collection("ranking").add({
+      driver: document.getElementById("rankDriverSelect").value,
+      km: Number(document.getElementById("rankKm").value)
+    });
+    loadRanking();
+  };
 
-      await db.collection("drivers").doc(driverId).delete();
+  /* ⭐ LOAD DRIVER LIST FOR DELETE DROPDOWN */
+  async function loadDeleteDriverList() {
+    const snap = await db.collection("drivers").get();
+    const select = document.getElementById("deleteDriverSelect");
+    select.innerHTML = "";
 
-      const snap = await db.collection("messages").where("driver", "==", driverName).get();
-      const batch = db.batch();
-      snap.forEach(doc => batch.delete(doc.ref));
-      await batch.commit();
+    snap.forEach(doc => {
+      const name = doc.data().name;
+      select.innerHTML += `<option value="${doc.id}">${name}</option>`;
+    });
+  }
 
-      loadDrivers();
-      loadAdminMessages();
-      loadDeleteDriverList();
-      loadInbox();
-    };
+  /* ⭐ DELETE DRIVER + INBOX */
+  window.deleteDriverAndInbox = async () => {
+    const driverId = document.getElementById("deleteDriverSelect").value;
+
+    const driverDoc = await db.collection("drivers").doc(driverId).get();
+    const driverName = driverDoc.data().name;
+
+    await db.collection("drivers").doc(driverId).delete();
+
+    const snap = await db.collection("messages").where("driver", "==", driverName).get();
+    const batch = db.batch();
+    snap.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
 
     loadDrivers();
-    loadFleet();
-    loadRanking();
     loadAdminMessages();
     loadDeleteDriverList();
+    loadInbox();
+  };
 
-  </script>
+  /* INITIAL LOAD */
+  loadDrivers();
+  loadFleet();
+  loadRanking();
+  loadAdminMessages();
+  loadDeleteDriverList();
+</script>
 
 </body>
 </html>
