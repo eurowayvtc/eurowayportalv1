@@ -229,11 +229,17 @@
           <div id="adminRankingList"></div>
         </div>
 
+        <!-- ⭐ NEW: DELETE DRIVER + INBOX -->
+        <div class="card">
+          <h3>Delete Driver</h3>
+          <select id="deleteDriverSelect"></select>
+          <button class="btn btn-danger" onclick="deleteDriverAndInbox()">Delete driver + inbox</button>
+        </div>
+
       </div>
     </section>
 
   </main>
-
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
@@ -273,7 +279,9 @@
         document.getElementById("adminLocked").style.display = "none";
         document.getElementById("adminPanel").style.display = "block";
         document.getElementById("deleteAllBtn").style.display = "inline-block";
+
         loadAdminMessages();
+        loadDeleteDriverList();
         loadInbox();
       }
     };
@@ -303,6 +311,7 @@
       if (!name) return;
       await db.collection("drivers").add({ name });
       loadDrivers();
+      loadDeleteDriverList();
     };
 
     async function loadInbox() {
@@ -458,10 +467,43 @@
       loadRanking();
     };
 
+    /* ⭐ NEW: LOAD DRIVER LIST FOR DELETE DROPDOWN */
+    async function loadDeleteDriverList() {
+      const snap = await db.collection("drivers").get();
+      const select = document.getElementById("deleteDriverSelect");
+      select.innerHTML = "";
+
+      snap.forEach(doc => {
+        const name = doc.data().name;
+        select.innerHTML += `<option value="${doc.id}">${name}</option>`;
+      });
+    }
+
+    /* ⭐ NEW: DELETE DRIVER + INBOX */
+    window.deleteDriverAndInbox = async () => {
+      const driverId = document.getElementById("deleteDriverSelect").value;
+
+      const driverDoc = await db.collection("drivers").doc(driverId).get();
+      const driverName = driverDoc.data().name;
+
+      await db.collection("drivers").doc(driverId).delete();
+
+      const snap = await db.collection("messages").where("driver", "==", driverName).get();
+      const batch = db.batch();
+      snap.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+
+      loadDrivers();
+      loadAdminMessages();
+      loadDeleteDriverList();
+      loadInbox();
+    };
+
     loadDrivers();
     loadFleet();
     loadRanking();
     loadAdminMessages();
+    loadDeleteDriverList();
 
   </script>
 
