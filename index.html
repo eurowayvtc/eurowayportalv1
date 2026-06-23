@@ -5,7 +5,6 @@
   <title>Euroway Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Montserrat font -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
@@ -19,7 +18,6 @@
       overflow: hidden;
     }
 
-    /* SIDEBAR */
     .sidebar {
       width: 240px;
       background: #0D223A;
@@ -58,7 +56,6 @@
       color: #FFFFFF;
     }
 
-    /* MAIN CONTENT */
     main {
       flex: 1;
       overflow-y: auto;
@@ -69,7 +66,6 @@
       margin-top: 0;
       font-size: 26px;
       font-weight: 600;
-      color: #FFFFFF;
     }
 
     .section {
@@ -80,7 +76,6 @@
       display: block;
     }
 
-    /* HOME */
     .home-title {
       font-size: 70px;
       font-weight: 700;
@@ -89,7 +84,6 @@
       margin-top: 150px;
     }
 
-    /* CARDS */
     .card {
       background: #0D223A;
       border: 1px solid #123456;
@@ -98,7 +92,6 @@
       margin-bottom: 20px;
     }
 
-    /* INPUTS */
     input, select, textarea {
       width: 100%;
       padding: 10px;
@@ -115,7 +108,6 @@
       min-height: 80px;
     }
 
-    /* BUTTONS */
     .btn {
       padding: 10px 16px;
       border-radius: 6px;
@@ -131,17 +123,9 @@
       color: white;
     }
 
-    .btn-primary:hover {
-      background: #1877D3;
-    }
-
     .btn-danger {
       background: #C62828;
       color: white;
-    }
-
-    .btn-danger:hover {
-      background: #A61F1F;
     }
 
     .btn-small {
@@ -159,7 +143,6 @@
 
 <body>
 
-  <!-- SIDEBAR -->
   <div class="sidebar">
     <h1>Euroway</h1>
     <button class="nav-btn active" data-tab="home">Home</button>
@@ -169,36 +152,31 @@
     <button class="nav-btn" data-tab="admin">Admin</button>
   </div>
 
-  <!-- MAIN CONTENT -->
   <main>
 
-    <!-- HOME -->
     <section id="home" class="section active">
       <div class="home-title">EUROWAY</div>
     </section>
 
-    <!-- DRIVERS -->
     <section id="drivers" class="section">
       <h2>Drivers</h2>
       <div class="card">
         <select id="driverSelect"></select>
       </div>
+      <button class="btn btn-danger btn-small" onclick="deleteAllMessagesForDriver()">Delete all messages for this driver</button>
       <div id="driverInbox"></div>
     </section>
 
-    <!-- FLEET -->
     <section id="fleet" class="section">
       <h2>Fleet</h2>
       <div id="fleetList"></div>
     </section>
 
-    <!-- RANKING -->
     <section id="ranking" class="section">
       <h2>Ranking</h2>
       <div id="rankingList"></div>
     </section>
 
-    <!-- ADMIN -->
     <section id="admin" class="section">
       <h2>Admin</h2>
 
@@ -209,7 +187,6 @@
 
       <div id="adminPanel" style="display:none;">
 
-        <!-- DRIVERS -->
         <div class="card">
           <input id="newDriverName" placeholder="Driver name">
           <button class="btn btn-primary" id="addDriverBtn">Add</button>
@@ -219,7 +196,6 @@
           <div id="adminDriversList"></div>
         </div>
 
-        <!-- MESSAGES -->
         <div class="card">
           <select id="msgDriverSelect"></select>
           <input id="msgTitle" placeholder="Title">
@@ -227,7 +203,10 @@
           <button class="btn btn-primary" id="sendMsgBtn">Send</button>
         </div>
 
-        <!-- FLEET -->
+        <div class="card">
+          <div id="adminMessagesList"></div>
+        </div>
+
         <div class="card">
           <textarea id="fleetText" placeholder="Text"></textarea>
           <input id="fleetImageUrl" placeholder="Image URL">
@@ -238,7 +217,6 @@
           <div id="adminFleetList"></div>
         </div>
 
-        <!-- RANKING -->
         <div class="card">
           <select id="rankDriverSelect"></select>
           <input id="rankKm" type="number" placeholder="Kilometers">
@@ -254,19 +232,10 @@
 
   </main>
 
-  <!-- FIREBASE + LOGIC -->
-  <script>
-
-    /* FIREBASE COMPAT SDK (WORKS ON GITHUB PAGES) */
-    document.write(`
-      <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"><\/script>
-      <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"><\/script>
-    `);
-
-  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
   <script>
-    /* YOUR FIREBASE CONFIG */
     const firebaseConfig = {
       apiKey: "AIzaSyCPsIyA6OnFBiQuH9abfto9JRIZZTmTMTo",
       authDomain: "eurowayportalv2.firebaseapp.com",
@@ -277,35 +246,31 @@
       measurementId: "G-LBQ84DWJPE"
     };
 
-    /* INIT */
-    const app = firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    /* TAB SWITCHING */
     const buttons = document.querySelectorAll(".nav-btn");
     const sections = document.querySelectorAll(".section");
 
     buttons.forEach(btn => {
-      btn.addEventListener("click", () => {
+      btn.onclick = () => {
         buttons.forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
-
-        sections.forEach(sec => sec.classList.remove("active"));
+        sections.forEach(s => s.classList.remove("active"));
         document.getElementById(btn.dataset.tab).classList.add("active");
-      });
+      };
     });
 
-    /* ADMIN LOGIN */
     const adminPassword = "321321";
 
     document.getElementById("adminLoginBtn").onclick = () => {
       if (document.getElementById("adminPassword").value === adminPassword) {
         document.getElementById("adminLocked").style.display = "none";
         document.getElementById("adminPanel").style.display = "block";
+        loadAdminMessages();
       }
     };
 
-    /* LOAD DRIVERS */
     async function loadDrivers() {
       const snap = await db.collection("drivers").get();
       const driverSelect = document.getElementById("driverSelect");
@@ -326,7 +291,6 @@
       loadInbox();
     }
 
-    /* ADD DRIVER */
     document.getElementById("addDriverBtn").onclick = async () => {
       const name = document.getElementById("newDriverName").value;
       if (!name) return;
@@ -334,7 +298,6 @@
       loadDrivers();
     };
 
-    /* LOAD INBOX */
     async function loadInbox() {
       const driver = document.getElementById("driverSelect").value;
       const snap = await db.collection("messages").get();
@@ -348,6 +311,7 @@
             <div class="card">
               <h3>${m.title}</h3>
               <p>${m.body}</p>
+              <button class="btn btn-danger btn-small" onclick="deleteMessage('${doc.id}')">Delete</button>
             </div>
           `;
         }
@@ -356,16 +320,52 @@
 
     document.getElementById("driverSelect").onchange = loadInbox;
 
-    /* SEND MESSAGE */
     document.getElementById("sendMsgBtn").onclick = async () => {
       await db.collection("messages").add({
         driver: document.getElementById("msgDriverSelect").value,
         title: document.getElementById("msgTitle").value,
         body: document.getElementById("msgBody").value
       });
+      loadAdminMessages();
+      loadInbox();
     };
 
-    /* FLEET */
+    async function loadAdminMessages() {
+      const snap = await db.collection("messages").get();
+      const list = document.getElementById("adminMessagesList");
+      list.innerHTML = "";
+
+      snap.forEach(doc => {
+        const m = doc.data();
+        list.innerHTML += `
+          <div class="card">
+            <h3>${m.title}</h3>
+            <p>${m.body}</p>
+            <p><b>${m.driver}</b></p>
+            <button class="btn btn-danger btn-small" onclick="deleteMessage('${doc.id}')">Delete</button>
+          </div>
+        `;
+      });
+    }
+
+    window.deleteMessage = async (id) => {
+      await db.collection("messages").doc(id).delete();
+      loadAdminMessages();
+      loadInbox();
+    };
+
+    window.deleteAllMessagesForDriver = async () => {
+      const driver = document.getElementById("driverSelect").value;
+      const snap = await db.collection("messages").where("driver", "==", driver).get();
+
+      const batch = db.batch();
+      snap.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+
+      loadAdminMessages();
+      loadInbox();
+    };
+
     async function loadFleet() {
       const snap = await db.collection("fleet").get();
       const list = document.getElementById("fleetList");
@@ -374,8 +374,8 @@
       list.innerHTML = "";
       adminList.innerHTML = "";
 
-      snap.forEach(docu => {
-        const f = docu.data();
+      snap.forEach(doc => {
+        const f = doc.data();
 
         list.innerHTML += `
           <div class="card">
@@ -387,7 +387,7 @@
         adminList.innerHTML += `
           <div class="card">
             <p>${f.text}</p>
-            <button class="btn btn-danger btn-small" onclick="deleteFleet('${docu.id}')">Delete</button>
+            <button class="btn btn-danger btn-small" onclick="deleteFleet('${doc.id}')">Delete</button>
           </div>
         `;
       });
@@ -406,7 +406,6 @@
       loadFleet();
     };
 
-    /* RANKING */
     async function loadRanking() {
       const snap = await db.collection("ranking").get();
       const list = document.getElementById("rankingList");
@@ -415,8 +414,8 @@
       list.innerHTML = "";
       adminList.innerHTML = "";
 
-      snap.forEach(docu => {
-        const r = docu.data();
+      snap.forEach(doc => {
+        const r = doc.data();
 
         list.innerHTML += `
           <div class="card">
@@ -427,7 +426,7 @@
         adminList.innerHTML += `
           <div class="card">
             <p>${r.driver}: ${r.km} km</p>
-            <button class="btn btn-danger btn-small" onclick="deleteRank('${docu.id}')">Delete</button>
+            <button class="btn btn-danger btn-small" onclick="deleteRank('${doc.id}')">Delete</button>
           </div>
         `;
       });
@@ -446,10 +445,10 @@
       loadRanking();
     };
 
-    /* INITIAL LOAD */
     loadDrivers();
     loadFleet();
     loadRanking();
+    loadAdminMessages();
 
   </script>
 
