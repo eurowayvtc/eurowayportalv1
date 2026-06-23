@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Euroway VTC Portal</title>
+  <title>Euroway Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Montserrat font -->
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     body {
@@ -80,6 +80,15 @@
       display: block;
     }
 
+    /* HOME */
+    .home-title {
+      font-size: 70px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-align: center;
+      margin-top: 150px;
+    }
+
     /* CARDS */
     .card {
       background: #0D223A;
@@ -90,13 +99,6 @@
     }
 
     /* INPUTS */
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
     input, select, textarea {
       width: 100%;
       padding: 10px;
@@ -159,9 +161,9 @@
 
   <!-- SIDEBAR -->
   <div class="sidebar">
-    <h1>Euroway VTC</h1>
+    <h1>Euroway</h1>
     <button class="nav-btn active" data-tab="home">Home</button>
-    <button class="nav-btn" data-tab="drivers">Drivers Inbox</button>
+    <button class="nav-btn" data-tab="drivers">Drivers</button>
     <button class="nav-btn" data-tab="fleet">Fleet</button>
     <button class="nav-btn" data-tab="ranking">Ranking</button>
     <button class="nav-btn" data-tab="admin">Admin</button>
@@ -172,15 +174,13 @@
 
     <!-- HOME -->
     <section id="home" class="section active">
-      <h2>Welcome</h2>
-      <p>This is the official Euroway VTC Portal for drivers, fleet updates and rankings.</p>
+      <div class="home-title">EUROWAY</div>
     </section>
 
     <!-- DRIVERS -->
     <section id="drivers" class="section">
-      <h2>Drivers Inbox</h2>
+      <h2>Drivers</h2>
       <div class="card">
-        <label>Select your name</label>
         <select id="driverSelect"></select>
       </div>
       <div id="driverInbox"></div>
@@ -194,17 +194,16 @@
 
     <!-- RANKING -->
     <section id="ranking" class="section">
-      <h2>Driver Ranking</h2>
+      <h2>Ranking</h2>
       <div id="rankingList"></div>
     </section>
 
     <!-- ADMIN -->
     <section id="admin" class="section">
-      <h2>Admin Panel</h2>
+      <h2>Admin</h2>
 
       <div id="adminLocked" class="card">
-        <label>Admin password</label>
-        <input type="password" id="adminPassword">
+        <input type="password" id="adminPassword" placeholder="Password">
         <button class="btn btn-primary" id="adminLoginBtn">Unlock</button>
       </div>
 
@@ -212,62 +211,41 @@
 
         <!-- DRIVERS -->
         <div class="card">
-          <h3>Add Driver</h3>
           <input id="newDriverName" placeholder="Driver name">
           <button class="btn btn-primary" id="addDriverBtn">Add</button>
         </div>
 
         <div class="card">
-          <h3>Drivers</h3>
           <div id="adminDriversList"></div>
         </div>
 
         <!-- MESSAGES -->
         <div class="card">
-          <h3>Send Message</h3>
-          <label>Driver</label>
           <select id="msgDriverSelect"></select>
-
-          <label>Title</label>
-          <input id="msgTitle">
-
-          <label>Message</label>
-          <textarea id="msgBody"></textarea>
-
+          <input id="msgTitle" placeholder="Title">
+          <textarea id="msgBody" placeholder="Message"></textarea>
           <button class="btn btn-primary" id="sendMsgBtn">Send</button>
         </div>
 
         <!-- FLEET -->
         <div class="card">
-          <h3>Add Fleet Item</h3>
-          <label>Description</label>
-          <textarea id="fleetText"></textarea>
-
-          <label>Image URL</label>
-          <input id="fleetImageUrl">
-
+          <textarea id="fleetText" placeholder="Text"></textarea>
+          <input id="fleetImageUrl" placeholder="Image URL">
           <button class="btn btn-primary" id="addFleetBtn">Add</button>
         </div>
 
         <div class="card">
-          <h3>Fleet Items</h3>
           <div id="adminFleetList"></div>
         </div>
 
         <!-- RANKING -->
         <div class="card">
-          <h3>Update Ranking</h3>
-          <label>Driver</label>
           <select id="rankDriverSelect"></select>
-
-          <label>Kilometers</label>
-          <input id="rankKm" type="number">
-
+          <input id="rankKm" type="number" placeholder="Kilometers">
           <button class="btn btn-primary" id="addRankBtn">Save</button>
         </div>
 
         <div class="card">
-          <h3>Ranking Entries</h3>
           <div id="adminRankingList"></div>
         </div>
 
@@ -279,18 +257,17 @@
   <!-- FIREBASE + LOGIC -->
   <script type="module">
 
-    /* 🔥 INSERT YOUR FIREBASE CONFIG HERE */
+    /* INSERT YOUR FIREBASE CONFIG HERE */
     const firebaseConfig = {
-    apiKey: "AIzaSyCPsIyA6OnFBiQuH9abfto9JRIZZTmTMTo",
+      apiKey: "AIzaSyCPsIyA6OnFBiQuH9abfto9JRIZZTmTMTo",
     authDomain: "eurowayportalv2.firebaseapp.com",
     projectId: "eurowayportalv2",
     storageBucket: "eurowayportalv2.firebasestorage.app",
     messagingSenderId: "781209873831",
-    appId: "1:781209873831:web:efb5cf246037cebf559a82"
+    appId: "1:781209873831:web:efb5cf246037cebf559a82
     };
 
-    /* Rest of your Firebase logic stays EXACTLY the same as before */
-    /* (I can paste the full JS again if you want it merged cleanly) */
+    /* Your Firebase logic goes here (unchanged) */
 
   </script>
 
